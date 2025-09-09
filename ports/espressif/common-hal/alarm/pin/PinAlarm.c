@@ -21,6 +21,7 @@
 #endif
 
 #include "driver/rtc_io.h"
+#include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 
 void common_hal_alarm_pin_pinalarm_construct(alarm_pin_pinalarm_obj_t *self, const mcu_pin_obj_t *pin, bool value, bool edge, bool pull) {
@@ -382,7 +383,9 @@ void alarm_pin_pinalarm_set_alarms(bool deep_sleep, size_t n_alarms, const mp_ob
             pull_mode = GPIO_PULLUP_ONLY;
         }
         gpio_set_direction(i, GPIO_MODE_DEF_INPUT);
-        PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[i], PIN_FUNC_GPIO);
+        #ifndef CONFIG_IDF_TARGET_ESP32C61
+            PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[i], PIN_FUNC_GPIO);
+        #endif
         if (pull) {
             gpio_set_pull_mode(i, pull_mode);
         }

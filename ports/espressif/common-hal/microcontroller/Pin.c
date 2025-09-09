@@ -371,15 +371,21 @@ void reset_all_pins(void) {
     #endif
 
     for (uint8_t i = 0; i < GPIO_PIN_COUNT; i++) {
-        uint32_t iomux_address = GPIO_PIN_MUX_REG[i];
-        if (iomux_address == 0 ||
-            _never_reset(i) ||
-            _skip_reset_once(i) ||
-            _preserved_pin(i)) {
+        // Skip pins that shouldn't be touched.
+        if (_never_reset(i) || _skip_reset_once(i) || _preserved_pin(i)) {
             continue;
         }
+        // On newer SoCs (e.g., ESP32-C61) there is no GPIO_PIN_MUX_REG[].
+        // Rely on the public validity macro if available; otherwise proceed.
+        #ifdef GPIO_IS_VALID_GPIO
+        if (!GPIO_IS_VALID_GPIO((gpio_num_t)i)) {
+            continue;
+        }
+        #endif
+
         _reset_pin(i);
     }
+
     _in_use_pin_mask = _never_reset_pin_mask | pin_mask_reset_forbidden;
     // Don't continue to skip resetting these pins.
     _skip_reset_once_pin_mask = 0;
