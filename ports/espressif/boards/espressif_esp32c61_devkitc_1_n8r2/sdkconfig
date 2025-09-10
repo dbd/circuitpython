@@ -1,0 +1,19 @@
+#
+# Espressif IoT Development Framework Configuration
+#
+#
+# Component config
+#
+#
+# LWIP
+#
+# end of LWIP
+
+# end of Component config
+
+# end of Espressif IoT Development Framework Configuration
+CONFIG_ESP_WIFI_SOFTAP_SUPPORT=n
+# CONFIG_ESP_WIFI_MESH_SUPPORT=n
+CONFIG_ESP_COEX_SW_COEXIST_ENABLE=n
+CONFIG_BT_ENABLED=n
+CONFIG_ESP_WIFI_ENABLED=n

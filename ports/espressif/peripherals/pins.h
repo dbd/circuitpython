@@ -14,7 +14,7 @@
 
 #include "components/hal/include/hal/gpio_types.h"
 #include "components/hal/include/hal/adc_types.h"
-#include "components/hal/include/hal/touch_sensor_types.h"
+#include "components/hal/include/hal/touch_sensor_legacy_types.h"
 
 typedef struct {
     mp_obj_base_t base;
@@ -60,4 +60,6 @@ extern const mp_obj_type_t mcu_pin_type;
 #include "esp32s2/pins.h"
 #elif defined(CONFIG_IDF_TARGET_ESP32S3)
 #include "esp32s3/pins.h"
+#elif defined(CONFIG_IDF_TARGET_ESP32C61)
+#include "esp32c61/pins.h"
 #endif

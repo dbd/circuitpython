@@ -64,6 +64,7 @@ INC += \
 	-isystem esp-idf/components/esp_driver_i2s/include \
 	-isystem esp-idf/components/esp_driver_$(IDF_TARGET)/include \
 	-isystem esp-idf/components/esp_driver_ledc/include \
+	-isystem esp-idf/components/esp_driver_parlio/include \
 	-isystem esp-idf/components/esp_driver_pcnt/include \
 	-isystem esp-idf/components/esp_driver_rmt/include \
 	-isystem esp-idf/components/esp_driver_sdio/include \
@@ -156,11 +157,13 @@ REGISTRATION_FUNCTIONS = \
 	-u __ubsan_include \
 	-u esp_system_include_startup_funcs \
 	-u esp_efuse_startup_include_func \
-	-u newlib_include_heap_impl \
-	-u newlib_include_syscalls_impl \
-	-u newlib_include_pthread_impl \
-	-u newlib_include_assert_impl \
-	-u newlib_include_init_funcs \
+	-u esp_libc_include_heap_impl \
+	-u esp_libc_include_reent_syscalls_impl \
+	-u esp_libc_include_syscalls_impl \
+	-u esp_libc_include_pthread_impl \
+	-u esp_libc_include_assert_impl \
+	-u esp_libc_include_getentropy_impl \
+	-u esp_libc_include_init_funcs \
 	-u include_esp_phy_override \
 	-u vfs_include_syscalls_impl
 
@@ -222,7 +225,8 @@ else ifeq ($(IDF_TARGET_ARCH),riscv)
 		-Trom.api.ld
 endif
 
-$(BUILD)/lib/tlsf/tlsf.o: CFLAGS += -Wno-cast-align
+$(BUILD)/lib/tlsf/%.o: CFLAGS += -Wno-cast-align
+
 
 LDFLAGS += $(CFLAGS) -Wl,-nostdlib -Wl,-Map=$@.map -Wl,-cref -Wl,--undefined=uxTopUsedPriority
 
@@ -244,7 +248,9 @@ LDFLAGS += \
 ifeq ($(IDF_TARGET),esp32)
 LDFLAGS += \
 	-Tesp32.rom.newlib-data.ld \
-	-Tesp32.rom.newlib-funcs.ld \
+	-Tesp32.rom.syscalls.ld \
+	-Tesp32.rom.libc-funcs.ld \
+	-Tesp32.rom.newlib-reent-funcs.ld \
 	-Tesp32.rom.spiflash_legacy.ld
 
 CHIP_COMPONENTS = \
@@ -280,12 +286,30 @@ LDFLAGS += \
 	-Tesp32c6.rom.phy.ld \
 	-Tesp32c6.rom.pp.ld \
 	-Tesp32c6.rom.net80211.ld \
+	-Tesp32c6.rom.libc.ld \
 	-Tesp32c6.rom.newlib.ld \
+	-Tesp32c6.rom.spiflash.ld \
 	-Tesp32c6.rom.coexist.ld \
 	-Tesp32c6.rom.heap.ld \
 	-Tesp32c6.rom.systimer.ld \
 	-Tesp32c6.rom.wdt.ld
 
+
+CHIP_COMPONENTS = \
+	esp_driver_tsens
+
+else ifeq ($(IDF_TARGET),esp32c61)
+LDFLAGS += \
+	-Tesp32c61.rom.phy.ld \
+	-Tesp32c61.rom.pp.ld \
+	-Tesp32c61.rom.net80211.ld \
+	-Tesp32c61.rom.libc.ld \
+	-Tesp32c61.rom.newlib.ld \
+	-Tesp32c61.rom.spiflash.ld \
+	-Tesp32c61.rom.coexist.ld \
+	-Tesp32c61.rom.heap.ld \
+	-Tesp32c61.rom.systimer.ld \
+	-Tesp32c61.rom.wdt.ld
 
 CHIP_COMPONENTS = \
 	esp_driver_tsens
@@ -312,8 +336,9 @@ CHIP_COMPONENTS = \
 
 else ifeq ($(IDF_TARGET),esp32s2)
 LDFLAGS += \
+	-Tesp32s2.rom.libc-funcs.ld \
 	-Tesp32s2.rom.newlib-data.ld \
-	-Tesp32s2.rom.newlib-funcs.ld \
+	-Tesp32s2.rom.newlib-reent-funcs.ld \
 	-Tesp32s2.rom.spiflash_legacy.ld
 
 CHIP_COMPONENTS = \
@@ -358,6 +383,8 @@ else ifeq ($(IDF_TARGET),esp32s2)
 CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32S2
 else ifeq ($(IDF_TARGET),esp32s3)
 CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32S3
+else ifeq ($(IDF_TARGET),esp32c61)
+CFLAGS += -DCFG_TUSB_MCU=OPT_MCU_ESP32C61
 endif
 ifeq ($(CIRCUITPY_TINYUSB),1)
 CFLAGS += \
@@ -672,7 +699,7 @@ ifeq ($(IDF_TARGET),esp32)
 BINARY_BLOBS += esp-idf/components/esp_phy/lib/$(IDF_TARGET)/librtc.a
 endif
 
-ESP_IDF_COMPONENTS_LINK = $(IDF_TARGET_ARCH) $(CHIP_COMPONENTS) app_update bootloader_support driver esp_driver_gpio esp_driver_gptimer esp_driver_i2c esp_driver_ledc esp_driver_spi esp_driver_uart efuse esp_adc esp_app_format esp_common esp_event esp_hw_support esp_mm esp_partition esp_pm esp_ringbuf esp_rom esp_system esp_timer freertos hal heap log newlib nvs_flash pthread soc spi_flash vfs esp_vfs_console
+ESP_IDF_COMPONENTS_LINK = $(IDF_TARGET_ARCH) $(CHIP_COMPONENTS) app_update bootloader_support driver esp_driver_gpio esp_driver_gptimer esp_driver_i2c esp_driver_ledc esp_driver_spi esp_driver_uart efuse esp_adc esp_app_format esp_common esp_event esp_hw_support esp_mm esp_partition esp_pm esp_ringbuf esp_rom esp_system esp_timer freertos hal heap log newlib nvs_flash pthread soc spi_flash vfs esp_vfs_console esp_security
 ifneq ($(CIRCUITPY_WIFI),0)
 	ESP_IDF_COMPONENTS_LINK += esp_coex esp_netif esp_security esp-tls esp_wifi lwip mbedtls mdns wpa_supplicant esp_phy
 endif
@@ -769,6 +796,8 @@ else ifeq ($(IDF_TARGET),esp32c3)
 BOOTLOADER_OFFSET = 0x0
 else ifeq ($(IDF_TARGET),esp32c6)
 BOOTLOADER_OFFSET = 0x0
+else ifeq ($(IDF_TARGET),esp32c61)
+BOOTLOADER_OFFSET = 0x0
 else ifeq ($(IDF_TARGET),esp32p4)
 BOOTLOADER_OFFSET = 0x2000
 else ifeq ($(IDF_TARGET),esp32s3)
@@ -782,7 +811,7 @@ endif
 
 IDF_CMAKE_TARGETS = \
 		bootloader/bootloader.bin \
-		esp-idf/esp_system/__ldgen_output_sections.ld \
+		__ldgen_output_sections.ld \
 		$(foreach component, $(ESP_IDF_COMPONENTS_LINK), esp-idf/$(component)/lib$(component).a)
 
 PARTITION_TABLE_OFFSET = 0x8000
@@ -858,3 +887,4 @@ monitor: $(BUILD)/firmware.elf
 	idf.py monitor -p $(PORT)
 
 include $(TOP)/py/mkrules.mk
+
