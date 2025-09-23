@@ -56,6 +56,13 @@ internal_memory = {
         ("Internal SRAM 0", (0x4037_C000,), 16 * 1024),
         ("Internal SRAM 1", (0x3FC8_0000, 0x4038_0000), 384 * 1024),
     ],
+    "esp32c5": [
+        # Name, Start, Length
+        ("LP SRAM", (0x5000_0000,), 16 * 1024),
+        ("HP SRAM", (0x4080_0000,), 384 * 1024),
+        # Devkits only have 4/8MB of PSRAM but allocate the whole 32MB block since that is the max supported and let ESP_PSRAM_SIZE handle the rest of the dynamic allocation.
+        ("PSRAM", (0x4200_0000,), 32 * 1024 * 1024),
+    ],
     "esp32c6": [
         # Name, Start, Length
         ("LP SRAM", (0x5000_0000,), 16 * 1024),

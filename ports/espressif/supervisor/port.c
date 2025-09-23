@@ -216,6 +216,11 @@ static void _never_reset_spi_ram_flash(void) {
         never_reset_pin_number(bootloader_flash_get_wp_pin());
     }
     #endif // CONFIG_IDF_TARGET_ESP32
+    #if defined(CONFIG_IDF_TARGET_ESP32C5)
+    #if defined(CONFIG_SPIRAM)
+    common_hal_never_reset_pin(&pin_GPIO15);
+    #endif
+    #endif
 }
 
 safe_mode_t port_init(void) {
@@ -276,6 +281,11 @@ safe_mode_t port_init(void) {
     common_hal_never_reset_pin(&pin_GPIO4);
     common_hal_never_reset_pin(&pin_GPIO5);
     common_hal_never_reset_pin(&pin_GPIO6);
+    #elif defined(CONFIG_IDF_TARGET_ESP32C5)
+    common_hal_never_reset_pin(&pin_GPIO2);
+    common_hal_never_reset_pin(&pin_GPIO3);
+    common_hal_never_reset_pin(&pin_GPIO4);
+    common_hal_never_reset_pin(&pin_GPIO5);
     #endif
     #endif
 

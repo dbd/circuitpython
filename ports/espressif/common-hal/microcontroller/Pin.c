@@ -126,6 +126,29 @@ static const uint64_t pin_mask_reset_forbidden =
     #endif
     #endif // ESP32C3
 
+    #if defined(CONFIG_IDF_TARGET_ESP32C5)
+    // Never ever reset pins used to communicate with SPI flash.
+    GPIO_SEL_16 |         // SPICS0
+    GPIO_SEL_17 |         // SPIQ
+    GPIO_SEL_18 |         // SPIWP
+    GPIO_SEL_20 |         // SPIHD
+    GPIO_SEL_21 |         // SPICLK
+    GPIO_SEL_22 |         // SPID
+    #if CIRCUITPY_ESP_USB_SERIAL_JTAG
+    // Never ever reset serial/JTAG communication pins.
+    GPIO_SEL_13 |         // USB D-
+    GPIO_SEL_14 |         // USB D+
+    #endif
+    #if defined(CONFIG_SPIRAM)
+    GPIO_SEL_15 |        // SPICS1 (PSRAM CS#); keep if PSRAM in use
+    #endif
+    #if defined(CONFIG_ESP_CONSOLE_UART_DEFAULT) && CONFIG_ESP_CONSOLE_UART_DEFAULT && CONFIG_ESP_CONSOLE_UART_NUM == 0
+    // Never reset debug UART/console pins.
+    GPIO_SEL_11 |
+    GPIO_SEL_12 |
+    #endif
+    #endif // ESP32C5
+
     #if defined(CONFIG_IDF_TARGET_ESP32C6)
     // Never ever reset pins used to communicate with SPI flash.
     GPIO_SEL_24 |         // SPICS0
